@@ -1,0 +1,128 @@
+"""3.Формируется матрица F следующим образом: если в С количество положительных элементов в
+четных столбцах в области 2 больше, чем количество отрицательных  элементов в нечетных столбцах в области 4,
+то поменять в С симметрично области 1 и 3 местами,
+иначе С и Е поменять местами несимметрично. При этом матрица А не меняется.
+После чего вычисляется выражение: (F+A)*AT – K * F. Выводятся по мере """
+import time
+import random
+
+def print_mat(M, name, time):
+    print("матрица", name, "промежуточное время:", time, "секунд")
+    for i in M:  # делаем перебор всех строк матрицы
+        for j in i:  # перебираем все элементы в строке
+            print("%5d" % j, end=' ')
+        print()
+
+N = int(input("Введите количество строк (столбцов) квадратной матрицы в интервале от 6 до 100: "))
+while N < 6 or 100 < N:
+    N = int(input("Введите количество строк (столбцов) квадратной матрицы в интервале от 6 до 100: "))
+
+A, F, F_A, ATF_A, F1 = [], [], [], [], []
+k = int(input("Введите число K: "))
+n1 = 0 # счетчик количества в С положительных элементов в четных столбцах в области 2
+n2 = 0 # счетчик количества в С отрицательных  элементов в нечетных столбцах в области 4
+
+start = time.time()
+for i in range(N):
+    A.append([0] * N) #заполняем матрицы нулями
+    F.append([0] * N)
+    F_A.append([0] * N)
+    ATF_A.append([0] * N)
+    F1.append([0] * N)
+time_next = time.time()
+print_mat(F, "F", start - time_next) #печатаем матрицу А
+
+for i in range(N): # заполняем матрицу А числами
+    for j in range(N):
+        A[i][j] = random.randint(-10, 10)
+
+time_prev = time_next
+time_next = time.time()
+print_mat(A, "A", time_next - time_prev)
+
+for i in range(N): #в матрицу F записываем значемия матрицы A
+    for j in range(N):
+        F[i][j] = A[i][j]
+time_prev = time_next
+time_next = time.time()
+print_mat(F, "F", time_next - time_prev)
+
+n = N // 2
+C = [] #подматрица С
+for i in range(n): #заполняем подматрицу С нулями
+    C.append([0] * n)
+for i in range(n): # заполняем подматрицу С значениями из матрицы F
+    for j in range(n):
+        C[i][j] = F[i][n + (N % 2) + j]
+time_prev = time_next
+time_next = time.time()
+print_mat(C, "C", time_next - time_prev)
+
+for i in range(n): #обрабатываем условия изменения матрицы С
+    for j in range(n):
+        if i < j and i + j < n - 1 and j % 2 != 0 and C[i][j] > 0:
+            n1 += 1
+        if i > j and i + j > n - 1 and j % 2 == 0 and C[i][j] < 0:
+            n2 += 1
+print("Количество положительных элементов в С в четных столбцах в области 2: ", n1)
+print("Количество отрицательных  элементов в С в нечетных столбцах в области 4: ", n2)
+if n1 > n2:
+    for i in range(1, n - 1): #меняем значения матрицы С
+        for j in range(0, (n // 2) + (n % 2) - 1):
+            C[i][j], C[i][n - j - 1] = C[i][n - j - 1], C[i][j]
+    print("матрица С")
+    for i in C:
+        for j in i:
+            print("%5d" % j, end=' ')
+        print()
+    for i in range(n):  # заполняем матрицу F значениями из матрицы C
+        for j in range(n):
+            F[i][n + (N % 2) + j] = C[i][j]
+else:
+    for i in range(N // 2): #меняем значения местами в матрице F если первое условие не прошло
+        for j in range((N // 2) + (N % 2), N):
+            F[i][j], F[N // 2 + N % 2 + i][j] = F[N // 2 + N % 2 + i][j], F[i][j]
+time_prev = time_next
+time_next = time.time()
+print_mat(F, "F", time_next - time_prev)
+print_mat(A, "A", 0)
+
+for i in range(N): #(F+A)
+    for j in range(N):
+        F_A[i][j] = F[i][j] + A[i][j]
+time_prev = time_next
+time_next = time.time()
+print_mat(F_A, "(F + A)", time_next - time_prev)
+
+for i in range(N): # K*F
+    for j in range(N):
+        F[i][j] *= k
+time_prev = time_next
+time_next = time.time()
+print_mat(F, "K * F", time_next - time_prev)
+
+for i in range(N): # AT
+    for j in range(i, N):
+        A[i][j], A[j][i] = A[j][i], A[i][j]
+time_prev = time_next
+time_next = time.time()
+print_mat(A, "AT", time_next - time_prev)
+
+for i in range(N): # (F+A)*AT
+    for j in range(N):
+        for m in range(N):
+            ATF_A[i][j] = A[i][m] * F_A[m][j]
+time_prev = time_next
+time_next = time.time()
+
+print_mat(ATF_A, "(F + A) * AT", time_next - time_prev)
+for i in range(N): # (F+A)*AT – K * F
+    for j in range(N):
+        F1[i][j] = ATF_A[i][j] - F[i][j]
+
+time_prev = time_next
+time_next = time.time()
+print_mat(F1, "(F + A) * AT – K * F", time_next - time_prev)
+
+end = time.time()
+print("Время работы программы:", end - start, "секунд")
